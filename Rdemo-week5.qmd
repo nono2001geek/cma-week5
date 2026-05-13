@@ -1,0 +1,54 @@
+---
+title: "Rdemo-week5"
+format: html
+---
+
+# creating Functions
+```{r}
+testfun <- function(){
+  print("this function does nothing")
+}
+testfun()
+#functions with inputs in the () and give outputs in the {} (usually)
+testfun <- function(sometext){
+  print(sometext)
+}
+testfun("this function does slightly more, but still not much")
+#function that calculate something
+#just write fun --> u get the basic structure
+my_age <- function(birthday) {
+  today <- Sys.Date()
+  as.numeric(difftime(today, birthday, units = "days")/365.25)
+}
+
+my_age("2001-07-09")
+
+#function more flexible
+testfun("this function does slightly more, but still not much")
+#function that calculate something
+#just write fun --> u get the basic structure
+#if nothing specified --> output unit = auto
+my_age <- function(birthday, output_unit = "auto") {
+  today <- Sys.Date()
+  difftime(today, birthday, units = output_unit)
+}
+
+my_age(birthday= "2001-07-09", output_unit= "secs")
+my_age("2001-07-09")
+#if you have a problem with the function, write browser() into the function --> u can debug the function --> then stop and remove the browser --> reexcecute the function (also possible to use within loops)
+
+bmi <- function(weight, height){
+  bmi_value <- weight/height^2
+  bmi_value
+}
+bmi(80, 1.60)
+#the last line is return (automatically)
+bmi <- function(weight, height){
+  bmi_value <- weight/height^2
+  return(bmi_value)
+}
+bmi(80, 1.60)
+#new way 
+bim2 <- \(weight,height)weight/height ^2
+```
+
