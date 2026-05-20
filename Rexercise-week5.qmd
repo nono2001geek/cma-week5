@@ -1,25 +1,164 @@
 ---
 title: "Rexercise-week5"
 format: html
+author: Noémie
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+# Task 1
+## Exercise 1 
 
 ```{r}
-1 + 1
+BMI<- function(Weight, Height){
+  BMI=Weight/(Height^2)
+  BMI
+}
+BMI(60, 1.62)
 ```
 
-You can add options to executable code like this 
-
+## Exercise 2 
 ```{r}
-#| echo: false
-2 * 2
+Température<- function(Celcius){
+  Farenheight= Celcius*(9/5)+32
+  message<- paste("Aujourdhui il fait", Celcius, "Degré celsius, ce qui équivaut à", Farenheight, "Degré Farenheight")
+  print(message)
+}
+Température(20)
+```
+## Exercise 3
+```{r}
+Distance<- function(x1, y1, x2, y2){
+  distance = sqrt((x2-x1)^2+(y2-y1)^2)
+  return(distance)}
+Distance(2,5,10,12.5)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+# Task 2 
+```{r}
+#import data
+library(readr)
+library(dplyr)
+wildschwein<- read_delim("wildschwein_BE_2056.csv", ",")
+filtered_wild<- wildschwein %>% 
+  filter(
+      TierName %in% c("Rosa", "Sabi"), 
+      DatetimeUTC >= "2015-04-01", 
+      DatetimeUTC < "2015-04-15")
+```
+# Task 3 
+```{r}
+library(lubridate)
+filtered_wild<- filtered_wild %>% 
+  mutate(DatetimeRound =floor_date(DatetimeUTC, unit = "15 minutes"))
+#use of function floor_date (a la place de round date)
+```
+
+# Task 4 
+```{r}
+#séparer dataset en deux en fonction des noms
+rosa<- filtered_wild %>% 
+  filter(TierName == "Rosa")
+sabi<- filtered_wild %>% 
+  filter(TierName == "Sabi")
+#join
+rencontre_potentielle <- full_join(
+  rosa, 
+  sabi, 
+  by = "DatetimeRound", 
+  suffix = c("_rosa", "_sabi")
+)
+#distance
+rencontre_potentielle <- rencontre_potentielle %>%
+  mutate(dist =Distance(E_rosa, N_rosa, E_sabi, N_sabi))
+#near enough? 
+rencontre_potentielle<- rencontre_potentielle %>% 
+  mutate(rencontre = ifelse(dist<=100, TRUE, FALSE))
+```
+
+# Task 5 
+Visualisations
+```{r}
+#filtrer
+meets <- rencontre_potentielle %>% 
+  filter(rencontre== TRUE)
+#visualiser
+library(ggplot2)
+ggplot() +
+  
+  # trajectoire Rosa
+  geom_path(
+    data = rosa,
+    aes(x = E, y = N),
+    color = "red",
+    alpha = 0.6
+  ) +
+  
+  # trajectoire Sabi
+  geom_path(
+    data = sabi,
+    aes(x = E, y = N),
+    color = "blue",
+    alpha = 0.6
+  ) +
+  
+  # points de rencontre
+  geom_point(
+    data = meets,
+    aes(x = E_rosa, y = N_rosa),
+    color = "black",
+    size = 2
+  ) +
+  
+  coord_cartesian(
+    xlim = c(2569700, 2575000),
+    ylim = c(1202600, 1205800)
+  ) +
+  
+  labs(
+    title = "Potential meetings between Rosa and Sabi",
+    x = "UTM Easting",
+    y = "UTM Northing"
+  ) +
+  
+  theme_minimal()
+range(filtered_wild$E)
+range(filtered_wild$N)
+```
+
+# Task 6 
+Visualisation as a timecube
+```{r}
+library(plotly)
+plot_ly() %>%
+  
+  add_trace(
+    data = rosa,
+    x = ~E,
+    y = ~N,
+    z = ~DatetimeRound, 
+    type = "scatter3d",
+    mode = "lines",
+    name = "Rosa"
+  ) %>%
+  
+  add_trace(
+    data = sabi,
+    x = ~E,
+    y = ~N,
+    z = ~DatetimeRound,
+    type = "scatter3d",
+    mode = "lines",
+    name = "Sabi"
+  ) %>%
+  
+  add_trace(
+    data = meets,
+    x = ~E_rosa,
+    y = ~N_rosa,
+    z = ~DatetimeRound,
+    type = "scatter3d",
+    mode = "markers",
+    name = "Meetings",
+    marker = list(size = 8, color = "black")
+  )
+```
+

@@ -52,3 +52,6 @@ bmi(80, 1.60)
 bim2 <- \(weight,height)weight/height ^2
 ```
 
+
+
+
